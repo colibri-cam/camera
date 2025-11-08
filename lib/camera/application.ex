@@ -9,6 +9,16 @@ defmodule Camera.Application do
   def start(_type, _args) do
     children =
       [
+        CameraWeb.Telemetry,
+        Camera.Repo,
+        {Ecto.Migrator,
+         repos: Application.fetch_env!(:camera, :ecto_repos)},
+        {DNSCluster, query: Application.get_env(:camera, :dns_cluster_query) || :ignore},
+        {Phoenix.PubSub, name: Camera.PubSub},
+        # Start a worker by calling: Camera.Worker.start_link(arg)
+        # {Camera.Worker, arg},
+        # Start to serve requests, typically the last entry
+        CameraWeb.Endpoint
         # Children for all targets
         # Starts a worker by calling: Camera.Worker.start_link(arg)
         # {Camera.Worker, arg},

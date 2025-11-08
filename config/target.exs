@@ -108,6 +108,27 @@ config :mdns_lite,
     }
   ]
 
+config :camera, Camera.Repo,
+  database: Path.expand("/root/camera.db", __DIR__),
+  pool_size: 5,
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true
+
+config :camera, CameraWeb.Endpoint,
+  # Binding to loopback ipv4 address prevents access from other machines.
+  # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
+  http: [ip: {0, 0, 0, 0}, port: 80],
+  check_origin: false,
+  code_reloader: false,
+  debug_errors: true,
+  secret_key_base: "zEywWVUw0ib/13XSrxYGqeQzJTEmX9s5ND0XBAaOsHFJ8C3+Lo5ite2wKJbVYUmB",
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  url: [host: "camera.local"],
+  server: true
+
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false
+
 # Import target specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 # Uncomment to use target specific configurations
