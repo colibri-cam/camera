@@ -45,8 +45,22 @@ config :nerves_ssh,
 # Update regulatory_domain to your 2-letter country code E.g., "US"
 #
 # See https://github.com/nerves-networking/vintage_net for more information
+
+networks =
+  if System.get_env("WIFI_SSID") do
+    [
+      %{
+        key_mgmt: :wpa_psk,
+        ssid: System.get_env("WIFI_SSID"),
+        psk: System.get_env("WIFI_PASSWORD")
+      }
+    ]
+  else
+    []
+  end
+
 config :vintage_net,
-  regulatory_domain: "00",
+  regulatory_domain: "DE",
   config: [
     {"usb0", %{type: VintageNetDirect}},
     {"eth0",
@@ -54,7 +68,13 @@ config :vintage_net,
        type: VintageNetEthernet,
        ipv4: %{method: :dhcp}
      }},
-    {"wlan0", %{type: VintageNetWiFi}}
+    {"wlan0",
+     %{
+       type: VintageNetWiFi,
+       vintage_net_wifi: %{
+         networks: networks
+       }
+     }}
   ]
 
 config :mdns_lite,
@@ -66,7 +86,7 @@ config :mdns_lite,
   # because otherwise any of the devices may respond to nerves.local leading to
   # unpredictable behavior.
 
-  hosts: [:hostname, "nerves"],
+  hosts: [:hostname, "camera"],
   ttl: 120,
 
   # Advertise the following services over mDNS.
@@ -87,6 +107,27 @@ config :mdns_lite,
       port: 4369
     }
   ]
+
+config :camera, Camera.Repo,
+  database: Path.expand("/root/camera.db", __DIR__),
+  pool_size: 5,
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true
+
+config :camera, CameraWeb.Endpoint,
+  # Binding to loopback ipv4 address prevents access from other machines.
+  # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
+  http: [ip: {0, 0, 0, 0}, port: 80],
+  check_origin: false,
+  code_reloader: false,
+  debug_errors: true,
+  secret_key_base: "zEywWVUw0ib/13XSrxYGqeQzJTEmX9s5ND0XBAaOsHFJ8C3+Lo5ite2wKJbVYUmB",
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  url: [host: "camera.local"],
+  server: true
+
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false
 
 # Import target specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
