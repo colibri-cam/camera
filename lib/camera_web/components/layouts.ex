@@ -5,11 +5,52 @@ defmodule CameraWeb.Layouts do
   """
   use CameraWeb, :html
 
-  # Embed all files in layouts/* within this module.
-  # The default root.html.heex file contains the HTML
-  # skeleton of your application, namely HTML headers
-  # and other static content.
-  embed_templates "layouts/*"
+  @doc """
+  The default root template contains the HTML
+  skeleton of your application, namely HTML headers
+  and other static content.
+  """
+
+  def root(assigns) do
+    ~H"""
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="csrf-token" content={get_csrf_token()} />
+        <.live_title default="Camera" suffix=" · Phoenix Framework">
+          {assigns[:page_title]}
+        </.live_title>
+        <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+        <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+        </script>
+        <script>
+          (() => {
+            const setTheme = (theme) => {
+              if (theme === "system") {
+                localStorage.removeItem("phx:theme");
+                document.documentElement.removeAttribute("data-theme");
+              } else {
+                localStorage.setItem("phx:theme", theme);
+                document.documentElement.setAttribute("data-theme", theme);
+              }
+            };
+            if (!document.documentElement.hasAttribute("data-theme")) {
+              setTheme(localStorage.getItem("phx:theme") || "system");
+            }
+            window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
+            
+            window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
+          })();
+        </script>
+      </head>
+      <body>
+        {@inner_content}
+      </body>
+    </html>
+    """
+  end
 
   @doc """
   Renders your app layout.

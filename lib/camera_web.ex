@@ -30,24 +30,6 @@ defmodule CameraWeb do
     end
   end
 
-  def channel do
-    quote do
-      use Phoenix.Channel
-    end
-  end
-
-  def controller do
-    quote do
-      use Phoenix.Controller, formats: [:html, :json]
-
-      use Gettext, backend: CameraWeb.Gettext
-
-      import Plug.Conn
-
-      unquote(verified_routes())
-    end
-  end
-
   def live_view do
     quote do
       use Phoenix.LiveView
