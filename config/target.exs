@@ -45,8 +45,22 @@ config :nerves_ssh,
 # Update regulatory_domain to your 2-letter country code E.g., "US"
 #
 # See https://github.com/nerves-networking/vintage_net for more information
+
+networks =
+  if System.get_env("WIFI_SSID") do
+    [
+      %{
+        key_mgmt: :wpa_psk,
+        ssid: System.get_env("WIFI_SSID"),
+        psk: System.get_env("WIFI_PASSWORD")
+      }
+    ]
+  else
+    []
+  end
+
 config :vintage_net,
-  regulatory_domain: "00",
+  regulatory_domain: "DE",
   config: [
     {"usb0", %{type: VintageNetDirect}},
     {"eth0",
@@ -54,7 +68,13 @@ config :vintage_net,
        type: VintageNetEthernet,
        ipv4: %{method: :dhcp}
      }},
-    {"wlan0", %{type: VintageNetWiFi}}
+    {"wlan0",
+     %{
+       type: VintageNetWiFi,
+       vintage_net_wifi: %{
+         networks: networks
+       }
+     }}
   ]
 
 config :mdns_lite,
@@ -66,7 +86,7 @@ config :mdns_lite,
   # because otherwise any of the devices may respond to nerves.local leading to
   # unpredictable behavior.
 
-  hosts: [:hostname, "nerves"],
+  hosts: [:hostname, "camera"],
   ttl: 120,
 
   # Advertise the following services over mDNS.
